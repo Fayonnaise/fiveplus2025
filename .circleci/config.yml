@@ -12,15 +12,24 @@ jobs:
       # Specify the version you desire here
       # See: https://circleci.com/developer/images/image/cimg/base
       - image: cimg/base:current
-
+    steps:
+      - run:
+          name: "Say hello"
+          command: "echo Hello, World!"
+  build-and-test:
+	  macos:
+	    xcode: "16.4.0"
     # Add steps to the job
     # See: https://circleci.com/docs/jobs-steps/#steps-overview & https://circleci.com/docs/configuration-reference/#steps
     steps:
       # Checkout the code as the first step.
       - checkout
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: "build iOS app"
+          command: xcodebuild -scheme fiveplus2025 -destination 'platform=iOS Simulator,name=iPhone 16'
+      - run:
+          name: "test iOS app"
+          command: xcodebuild test -scheme fiveplus2025 -destination 'platform=iOS Simulator,name=iPhone 16'
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/workflows/ & https://circleci.com/docs/configuration-reference/#workflows
@@ -29,3 +38,4 @@ workflows:
     # Inside the workflow, you define the jobs you want to run.
     jobs:
       - say-hello
+      - build-and-test
