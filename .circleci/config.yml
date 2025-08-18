@@ -27,7 +27,9 @@ commands:
         default: "someone forgot to leave a message"
     steps:
       - run: |
-          PR_NUMBER=pipeline.event.github.pull_request.number
+          PR_NUMBER="<< pipeline.event.github.pull_request.number >>"
+          echo "PR NUMBER: $PR_NUMBER"
+          echo "URL: https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/issues/$PR_NUMBER/comments"
           
           echo "BODY: '{"body": "<< parameters.message >>"}'"
           
