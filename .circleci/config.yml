@@ -10,6 +10,7 @@ commands:
         type: string
     steps:
       - run: |
+          echo "REPOSITORY: << pipeline.event.github.repository >>"
           echo "EXIT CODE:<< parameters.exit_code >>\nJOB NAME:<< parameters.job_name >>"
           if [ "<< parameters.exit_code >>" = "0" ]; then
             MESSAGE="<< parameters.job_name >> passed!"
