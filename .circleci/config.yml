@@ -36,10 +36,6 @@ commands:
             echo "\nBASH ENV: $BASH_ENV"
   post-gh-pr-comment:
     description: Posts the given message as a comment to the upstream GH PR
-    parameters:
-      message:
-        type: string
-        default: "someone forgot to leave a message"
     steps:
       - run: 
           name: Post Comment to Github PR
@@ -48,11 +44,11 @@ commands:
             echo "PR NUMBER: $PR_NUMBER"
             echo "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/comments"
             
-            echo "BODY: '{"body": "<< parameters.message >>"}'"
+            echo "BODY: '{"body": "$JOB_MESSAGE"}'"
             
             curl -H "Authorization: token $GITHUB_TOKEN" \
             -X POST \
-            -d '{"body": "<< parameters.message >>"}' \
+            -d "{\"body\": \"$JOB_MESSAGE\"}" \
             "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/comments"
   post-job-status-comment:
     description: "Posts the status of the job as a comment to the upstream GH PR"
@@ -65,8 +61,7 @@ commands:
       - get-job-status-message:
           exit_code: << parameters.exit_code >>
           job_name: << parameters.job_name >>
-      - post-gh-pr-comment:
-          message: $JOB_MESSAGE
+      - post-gh-pr-comment
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/jobs-steps/#jobs-overview & https://circleci.com/docs/configuration-reference/#jobs
 jobs:
