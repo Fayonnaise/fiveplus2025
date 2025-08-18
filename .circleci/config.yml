@@ -36,7 +36,7 @@ commands:
           curl -H "Authorization: token $GITHUB_TOKEN" \
           -X POST \
           -d '{"body": "<< parameters.message >>"}' \
-          "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/issues/$PR_NUMBER/comments"
+          "https://api.github.com/repos/Fayonnaise/fiveplus2025/issues/$PR_NUMBER/comments"
         
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/jobs-steps/#jobs-overview & https://circleci.com/docs/configuration-reference/#jobs
