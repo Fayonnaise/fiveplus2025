@@ -10,12 +10,16 @@ commands:
         type: string
     steps:
       - run: |
+          echo "EXIT CODE:<< parameters.exit_code >>\nJOB NAME:<< parameters.job_name >>"
           if [ "<< parameters.exit_code >>" = "0" ]; then
             MESSAGE="<< parameters.job_name >> passed!"
           else
             MESSAGE="<< parameters.job_name >> failed."
           fi
           echo "export JOB_MESSAGE=$MESSAGE" >> $BASH_ENV
+          
+          echo "\nMESSAGE: $MESSAGE"
+          echo "\nBASH ENV: $BASH_ENV"
   post-gh-pr-comment:
     parameters:
       message:
@@ -24,6 +28,8 @@ commands:
     steps:
       - run: |
           PR_NUMBER=pipeline.event.github.pull_request.number
+          
+          echo "BODY: '{"body": "<< parameters.message >>"}'"
           
           curl -H "Authorization: token $GITHUB_TOKEN" \
           -X POST \
