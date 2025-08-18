@@ -10,10 +10,10 @@ commands:
         type: string
     steps:
       - run: |
-          if [ $parameters.exit_code] eq "0" ]; then
-            MESSAGE="$parameters.job_name passed!
+          if [ "<< parameters.exit_code >>" = "0" ]; then
+            MESSAGE="<< parameters.job_name >> passed!"
           else
-            MESSAGE="$parameters.job_name failed."
+            MESSAGE="<< parameters.job_name >> failed."
           fi
           echo "export JOB_MESSAGE=$MESSAGE" >> $BASH_ENV
   post-gh-pr-comment:
@@ -27,7 +27,7 @@ commands:
           
           curl -H "Authorization: token $GITHUB_TOKEN" \
           -X POST \
-          -d '{"body": "$parameters.message"}' \
+          -d '{"body": "<< parameters.message >>"}' \
           "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/issues/$PR_NUMBER/comments"
         
 # Define a job to be invoked later in a workflow.
