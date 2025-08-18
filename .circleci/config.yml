@@ -9,8 +9,8 @@ commands:
           REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
           echo "export REPO_NAME=$REPO_NAME" >> $BASH_ENV
 
-          GH_OWNER=$(basename $(dirname $(git config --get remote.origin.url)))
-          echo "export GH_OWNER=$GH_OWNER" >> $BASH_ENV
+          REPO_OWNER=$(basename $(dirname $(git config --get remote.origin.url)))
+          echo "export REPO_OWNER=$REPO_OWNER" >> $BASH_ENV
   get-job-status-message:
     description: "Get's the status message of a job"
     parameters:
@@ -40,15 +40,27 @@ commands:
       - run: |
           PR_NUMBER="<< pipeline.event.github.pull_request.number >>"
           echo "PR NUMBER: $PR_NUMBER"
-          echo "URL: https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/issues/$PR_NUMBER/comments"
+          echo "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/comments"
           
           echo "BODY: '{"body": "<< parameters.message >>"}'"
           
           curl -H "Authorization: token $GITHUB_TOKEN" \
           -X POST \
           -d '{"body": "<< parameters.message >>"}' \
-          "https://api.github.com/repos/Fayonnaise/fiveplus2025/issues/$PR_NUMBER/comments"
-        
+          "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/comments"
+  post-job-status-comment:
+    description: "Posts the status of the job as a comment to the upstream GH PR"
+    parameters:
+      exit_code:
+        type: string
+      job_name:
+        type: string
+    steps:
+      - get-job-status-message:
+          exit_code: << parameters.exit_code >>
+          job_name: << parameters.job_name >>
+      - post-gh-pr-comment:
+          message: $JOB_MESSAGE
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/jobs-steps/#jobs-overview & https://circleci.com/docs/configuration-reference/#jobs
 jobs:
@@ -76,17 +88,18 @@ jobs:
             xcodebuild -scheme fiveplus2025 -destination 'platform=iOS Simulator,name=iPhone 16'
             BUILD_STATUS=$?
             echo "export BUILD_STATUS=$BUILD_STATUS" >> $BASH_ENV
-      - get-job-status-message:
+      - post-job-status-comment:
           exit_code: $BUILD_STATUS
           job_name: "Build"
-      - post-gh-pr-comment:
-          message: $JOB_MESSAGE
       - run:
           name: "test iOS app"
           command: |
             xcodebuild test -scheme fiveplus2025 -destination 'platform=iOS Simulator,name=iPhone 16'
             TEST_STATUS=$?
             echo "export TEST_STATUS=$TEST_STATUS" >> $BASH_ENV
+      - post-job-status-comment:
+          exit_code: $TEST_STATUS
+          job_name: "Test"
           
 
 # Orchestrate jobs using workflows
