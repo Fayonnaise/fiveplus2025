@@ -7,4 +7,11 @@ class MySwiftUITests: XCTestCase {
         tapCount += 1
         XCTAssertEqual(tapCount, 1, "Tap count should increment")
     }
+    
+    func testThatFaithIsAwesome() {
+        var isFaithAwesome = false
+        isFaithAwesome.toggle()
+        
+        XCTAssertTrue(isFaithAwesome)
+    }
 }
