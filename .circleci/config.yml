@@ -16,7 +16,7 @@ commands:
           else
             MESSAGE="<< parameters.job_name >> failed."
           fi
-          echo "export JOB_MESSAGE=$MESSAGE" >> $BASH_ENV
+          echo "export JOB_MESSAGE=\"$MESSAGE\"" >> $BASH_ENV
           
           echo "\nMESSAGE: $MESSAGE"
           echo "\nBASH ENV: $BASH_ENV"
