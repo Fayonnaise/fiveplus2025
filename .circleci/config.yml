@@ -3,51 +3,57 @@
 version: 2.1
 commands:
   set-up:
-    description: "Sets up any environment variables that we need"
+    description: Sets up any environment variables that we need
     steps:
-      - run: |
-          REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
-          echo "export REPO_NAME=$REPO_NAME" >> $BASH_ENV
+      - run:
+          name: Set Up Environment Variables
+          command: |
+            REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
+            echo "export REPO_NAME=$REPO_NAME" >> $BASH_ENV
 
-          REPO_OWNER=$(basename $(dirname $(git config --get remote.origin.url)))
-          echo "export REPO_OWNER=$REPO_OWNER" >> $BASH_ENV
+            REPO_OWNER=$(basename $(dirname $(git config --get remote.origin.url)))
+            echo "export REPO_OWNER=$REPO_OWNER" >> $BASH_ENV
   get-job-status-message:
-    description: "Get's the status message of a job"
+    description: Get's the status message of a job
     parameters:
       exit_code:
         type: string
       job_name:
         type: string
     steps:
-      - run: |
-          echo "EXIT CODE:<< parameters.exit_code >>\nJOB NAME:<< parameters.job_name >>"
-          if [ "<< parameters.exit_code >>" = "0" ]; then
-            MESSAGE="<< parameters.job_name >> passed!"
-          else
-            MESSAGE="<< parameters.job_name >> failed."
-          fi
-          echo "export JOB_MESSAGE=\"$MESSAGE\"" >> $BASH_ENV
-          
-          echo "\nMESSAGE: $MESSAGE"
-          echo "\nBASH ENV: $BASH_ENV"
+      - run: 
+          name: Get Job's Status Message
+          command: |
+            echo "EXIT CODE:<< parameters.exit_code >>\nJOB NAME:<< parameters.job_name >>"
+            if [ "<< parameters.exit_code >>" = "0" ]; then
+              MESSAGE="<< parameters.job_name >> passed!"
+            else
+              MESSAGE="<< parameters.job_name >> failed."
+            fi
+            echo "export JOB_MESSAGE=\"$MESSAGE\"" >> $BASH_ENV
+            
+            echo "\nMESSAGE: $MESSAGE"
+            echo "\nBASH ENV: $BASH_ENV"
   post-gh-pr-comment:
-    description: "Posts the given message as a comment to the upstream GH PR"
+    description: Posts the given message as a comment to the upstream GH PR
     parameters:
       message:
         type: string
         default: "someone forgot to leave a message"
     steps:
-      - run: |
-          PR_NUMBER="<< pipeline.event.github.pull_request.number >>"
-          echo "PR NUMBER: $PR_NUMBER"
-          echo "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/comments"
-          
-          echo "BODY: '{"body": "<< parameters.message >>"}'"
-          
-          curl -H "Authorization: token $GITHUB_TOKEN" \
-          -X POST \
-          -d '{"body": "<< parameters.message >>"}' \
-          "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/comments"
+      - run: 
+          name: Post Comment to Github PR
+          command: |
+            PR_NUMBER="<< pipeline.event.github.pull_request.number >>"
+            echo "PR NUMBER: $PR_NUMBER"
+            echo "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/comments"
+            
+            echo "BODY: '{"body": "<< parameters.message >>"}'"
+            
+            curl -H "Authorization: token $GITHUB_TOKEN" \
+            -X POST \
+            -d '{"body": "<< parameters.message >>"}' \
+            "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$PR_NUMBER/comments"
   post-job-status-comment:
     description: "Posts the status of the job as a comment to the upstream GH PR"
     parameters:
@@ -94,12 +100,21 @@ jobs:
       - run:
           name: "test iOS app"
           command: |
+            set +e
             xcodebuild test -scheme fiveplus2025 -destination 'platform=iOS Simulator,name=iPhone 16'
             TEST_STATUS=$?
             echo "export TEST_STATUS=$TEST_STATUS" >> $BASH_ENV
+            set -e
       - post-job-status-comment:
           exit_code: $TEST_STATUS
           job_name: "Test"
+      - run:
+          name: Fail Job if Test Failed
+          command: |
+            if [ "$TEST_STATUS" -ne 0 ]; then
+              echo "Tests failed, failing the job as expected."
+              exit 1
+            fi
           
 
 # Orchestrate jobs using workflows
